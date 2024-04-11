@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pop-up Example</title>
+<style>
+  /* Styles for pop-up container */
+  .popup {
+    
+    position: fixed;
+    width: 400px;
+    height: 500px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #f5f2f2;
+    
+   border-color: transparent;
+    border-radius: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  }
+  #popupButton{
+    width: 500px;
+    height: 50px;
+    border-radius: 40px;
+    border-color: transparent;
+    margin-top: 15px;
+    margin-left: 20px;
+    position: absolute;
+    font-size: 1.5em;
+    font-family: 'Times New Roman', Times, serif;
+  }
+
+  .noteContainer{
+    width: 230px;
+    height: 250px;
+    background-color: antiquewhite;
+    top: 80px;
+    position: relative;
+    border-radius: 30px;
+    align-content: center;
+    margin-left: 25px;
+   
+}
+#notesContainer{
+    width: 550px;
+    min-height: 610px;
+    background-color: rgb(129, 126, 120);
+    margin-top: 50px;
+    display: flex;
+    flex-wrap: wrap;
+    border-radius: 40px;
+}
+.noteTitle {
+    font-size: 2.4em;
+    margin-top: -3px; /* Adjust as needed */
+    margin-left: 10px;
+    font-weight: bold;
+    color: #333;
+    
+    overflow-wrap: break-word;
+    margin-right: 50px;
+    position: absolute;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Display ellipsis (...) for overflow text */
+    white-space: nowrap; /* Prevent text from wrapping */
+    max-width: 200px;
+}
+
+.noteText {
+    font-size: 16px;
+    color: #666;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    margin-top: 50px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Display ellipsis (...) for overflow text */
+    max-height: 12em;
+}
+
+.noteContainer span {
+    font-size: 25px;
+    position: absolute; /* Use absolute positioning for precise placement */
+    top: 10px; /* Adjust as needed */
+    right: 10px; /* Adjust as needed */
+    background-color: tomato;
+    padding: 5px 12px;
+    border-radius: 50px;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 15px;
+  
+}
+.buttonContainer button{
+  width: 185px;
+  height: 40px;
+  text-align: center;
+  line-height: 40px;
+  border-radius: 40px;
+  border-color: transparent;
+  background-color: #888686;
+  color: aliceblue;
+}
+
+.input-line {
+  border: none;
+  border-bottom: 1px solid #ccc;
+  width: 90%;
+  outline: none;
+  margin-bottom: 10px;
+  margin-top: 20px;
+  margin-left: 12px;
+  font-size: 1.4em;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  background-color: #f5f2f2;
+
+}
+.input-line-text {
+  border: none; 
+  width: 90%;
+  height: 350px;
+  outline: none;
+  margin-bottom: 10px;
+  margin-top: 20px;
+  margin-left: 12px;
+  margin-right: 40px;
+  font-size: 1.4em;
+  overflow-wrap: break-word;
+  background-color: #f5f2f2;
+
+}
+
+
+</style>
+</head>
+<body>
+    <button id="popupButton">Add Note</button>
+   <div id="popup" class="popup">
+   <input type="text" placeholder="title" id="title" class="input-line">
+   <textarea placeholder="Note" id="text" class="input-line-text"></textarea>  <div class="buttonContainer">
+    <button id="closeButton">Close</button>
+    <button id = "saveButton">Save</button>
+  </div>
+
+</div>
+
+<div id="notesContainer"></div>
+
+<!-- JavaScript to handle button click and show pop-up -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var button = document.getElementById("popupButton");
+    var popup = document.getElementById("popup");
+    var closeButton = document.getElementById("closeButton");
+    var saveButton = document.getElementById("saveButton");
+    var notesContainer = document.getElementById("notesContainer");
+
+    const noteTitle = document.getElementById("title");
+    const noteText = document.getElementById("text");
+
+    var clickedContainer = null;
+     popup.style.display = "none";
+    // Function to show the pop-up when button is clicked
+    button.addEventListener("click", function() {
+        noteTitle.value = '';
+        noteText.value = '';
+        popup.style.display = "block";
+        clickedContainer = null;
+    });
+
+    // Function to close the pop-up when close button is clicked
+    closeButton.addEventListener("click", function() {
+        popup.style.display = "none";
+    });
+
+    // Function to create or update the noteContainer when save button is clicked
+    saveButton.addEventListener("click", function() {
+        if (noteText.value === '' && noteTitle.value === "") {
+            alert("Please fill in both title and text.");
+        } else {
+            if (clickedContainer && 
+                (clickedContainer.getAttribute('data-title') !== noteTitle.value || 
+                clickedContainer.getAttribute('data-text') !== noteText.value)) {
+                // Update the clicked noteContainer with new content
+                clickedContainer.querySelector('.noteTitle').textContent = noteTitle.value;
+                clickedContainer.querySelector('.noteText').textContent = noteText.value;
+
+                // Update data attributes with new content
+                clickedContainer.setAttribute('data-title', noteTitle.value);
+                clickedContainer.setAttribute('data-text', noteText.value);
+            } else {
+                // Create a new noteContainer
+                var container = createNoteContainer(noteTitle.value, noteText.value);
+
+                notesContainer.appendChild(container);
+            }
+
+            // Save the updated content of notesContainer to localStorage
+            saveData();
+
+            // Hide the popup after creating/updating the noteContainer
+            popup.style.display = "none";
+        }
+    });
+
+    // Event delegation for click events on note containers
+    notesContainer.addEventListener("click", function(event) {
+        var target = event.target;
+        if (target.classList.contains('noteContainer')) {
+            // Store reference of the clicked noteContainer
+            clickedContainer = target;
+
+            // Retrieve title and text content from data attributes
+            var title = target.getAttribute('data-title');
+            var text = target.getAttribute('data-text');
+
+            // Populate title and text fields in the pop-up
+            noteTitle.value = title;
+            noteText.value = text;
+
+            // Display the pop-up
+            popup.style.display = "block";
+        } else if (target.tagName === 'SPAN') {
+            // Handle delete button click
+            var container = target.parentElement;
+            container.remove();
+            popup.style.display = "none";
+            saveData();
+        }
+    });
+    
+    // Load the saved data
+    showTask();
+});
+
+// Function to create a note container
+function createNoteContainer(title, text) {
+    var container = document.createElement('div');
+    container.className = 'noteContainer';
+
+    // Create elements for title, text, and delete button
+    var titleElement = document.createElement('div');
+    titleElement.className = 'noteTitle';
+    titleElement.textContent = title;
+
+    var textElement = document.createElement('div');
+    textElement.className = 'noteText';
+    textElement.textContent = text;
+
+    var deleteButton = document.createElement('span');
+    deleteButton.textContent = "\u00d7";
+
+    // Append elements to the container
+    container.appendChild(titleElement);
+    container.appendChild(textElement);
+    container.appendChild(deleteButton);
+
+    // Attach title and text content as data attributes
+    container.setAttribute('data-title', title);
+    container.setAttribute('data-text', text);
+
+    return container;
+}
+
+// Function to save data to localStorage
+function saveData() {
+    var notesContainer = document.getElementById("notesContainer");
+    localStorage.setItem("data", notesContainer.innerHTML);
+}
+
+// Function to load and display saved data
+function showTask() {
+    var notesContainer = document.getElementById("notesContainer");
+    notesContainer.innerHTML = localStorage.getItem("data");
+}
+
+</script>
+
+</body>
+</html>
